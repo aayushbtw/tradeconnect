@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductCategory {
+  ESSENTIAL
+  CLOTHING
+  FOOTWEAR
+  ELECTRONICS
+  BACKPACKS
+  COSMETICS
+}
+
+model User {
+  id    String @id @unique
+  email String @unique
+
+  auth_session Session[]
+  key          Key[]
+  kyc          Kyc?
+  product      product[]
+}
+
+model Session {
+  id             String @id @unique
+  user_id        String
+  active_expires BigInt
+  idle_expires   BigInt
+  user           User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model Key {
+  id              String  @id @unique
+  hashed_password String?
+  user_id         String
+  user            User    @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model Kyc {
+  id         String @id @default(cuid())
+  full_name  String
+  brand_name String
+  city       String
+  pancard_id String
+  gst_number String
+  user_id    String @unique
+  user       User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model Product {
+  id         String          @id @default(cuid())
+  name       String
+  brand_name String
+  price      String
+  category   ProductCategory
+  user_id    String
+  user       User            @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
